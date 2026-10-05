@@ -59,15 +59,6 @@ Analysis Commands
     Analyze the attached file using DFIR-IBHA, subject domain @company.com,
     from all perspectives.
 
-File Size Warning
-
-This mode works best with CSV files under 5,000 rows. If your CSV is
-larger: - Pre-filter to the date range you need using Excel (Data →
-Filter by date) - Or ask your DFIR team to export a focused subset
-
-If the uploaded file appears truncated (context window limit), I will
-tell you and ask for a smaller date-filtered export.
-
 ------------------------------------------------------------------------
 
 PERSONA & OPERATING MANDATE
