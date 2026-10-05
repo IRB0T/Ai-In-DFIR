@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DFIR – Internet Browsing History Analysis</title>
+<style>
+:root{--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;--header-bg:#263238;--header-text:#fff;--nav-bg:#37474f;--text-primary:#263238;--text-secondary:#607d8b;--card-bg:#fff;--border:#cfd8dc;--critical:#b71c1c;--critical-bg:#ffebee;--critical-border:#ef9a9a;--high:#e65100;--high-bg:#fff3e0;--high-border:#ffcc80;--medium:#f57f17;--medium-bg:#fffde7;--medium-border:#fff59d;--low:#2e7d32;--low-bg:#e8f5e9;--low-border:#a5d6a7;--info:#1565c0;--info-bg:#e3f2fd;--info-border:#90caf9;--restricted-bg:#5d4037}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--text-primary);background:#f5f7f8;line-height:1.45}code{font-family:var(--mono);font-size:.85em;background:#f5f5f5;padding:1px 4px;border-radius:3px;border:1px solid var(--border)}
+.report-header{background:var(--header-bg);color:var(--header-text);padding:24px 32px}.report-header h1{font-size:1.4em;font-weight:700;letter-spacing:.03em;margin:0 0 4px}.report-header .subtitle{font-size:.9em;opacity:.85;margin-bottom:16px}.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px 16px;font-size:.82em}.meta-item{display:flex;gap:6px}.meta-label{opacity:.7;white-space:nowrap}.meta-value{font-weight:600}.classification-badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:2px 10px;font-size:.78em;letter-spacing:.08em;font-weight:700;text-transform:uppercase}
+nav{background:var(--nav-bg);padding:8px 32px;display:flex;gap:20px;flex-wrap:wrap}nav a{color:rgba(255,255,255,.85);font-size:.8em;font-weight:500;letter-spacing:.03em;text-decoration:none}nav a:hover{color:#fff}
+.container{max-width:1100px;margin:0 auto;padding:24px 20px}section{margin-bottom:32px}.section-title{font-size:1.1em;font-weight:700;color:var(--header-bg);border-bottom:2px solid var(--header-bg);padding-bottom:6px;margin-bottom:16px;text-transform:uppercase;letter-spacing:.05em}.subsection-title{font-size:.95em;font-weight:600;color:var(--text-primary);margin:20px 0 10px;padding-left:10px;border-left:3px solid var(--header-bg)}.card{background:var(--card-bg);border:1px solid var(--border);border-radius:6px;padding:16px 20px;margin-bottom:16px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}.kpi-card{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;border-top:4px solid var(--border)}.kpi-card.critical{border-top-color:var(--critical)}.kpi-card.high{border-top-color:var(--high)}.kpi-card.medium{border-top-color:var(--medium)}.kpi-card.low{border-top-color:var(--low)}.kpi-label{font-size:.72em;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:6px}.kpi-value{font-size:2em;font-weight:700;line-height:1}.kpi-value.critical{color:var(--critical)}.kpi-value.high{color:var(--high)}.kpi-value.medium{color:var(--medium)}.kpi-value.low{color:var(--low)}.kpi-sub{font-size:.75em;color:var(--text-secondary);margin-top:4px}
+.badge{display:inline-block;font-size:.75em;font-weight:700;padding:2px 8px;border-radius:3px;white-space:nowrap;letter-spacing:.03em}.badge.critical{background:var(--critical-bg);color:var(--critical);border:1px solid var(--critical-border)}.badge.high{background:var(--high-bg);color:var(--high);border:1px solid var(--high-border)}.badge.medium{background:var(--medium-bg);color:var(--medium);border:1px solid var(--medium-border)}.badge.low{background:var(--low-bg);color:var(--low);border:1px solid var(--low-border)}.badge.info{background:var(--info-bg);color:var(--info);border:1px solid var(--info-border)}
+.risk-banner{border-radius:8px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px}.risk-banner.critical{background:var(--critical-bg);border:2px solid var(--critical)}.risk-banner.high{background:var(--high-bg);border:2px solid var(--high)}.risk-banner.medium{background:var(--medium-bg);border:2px solid var(--medium)}.risk-banner.low{background:var(--low-bg);border:2px solid var(--low)}.risk-banner .risk-label{font-size:1.6em;font-weight:800;line-height:1}.risk-banner.critical .risk-label{color:var(--critical)}.risk-banner.high .risk-label{color:var(--high)}.risk-banner.medium .risk-label{color:var(--medium)}.risk-banner.low .risk-label{color:var(--low)}.risk-details{font-size:.85em;color:var(--text-secondary)}.risk-details strong{color:var(--text-primary)}
+.findings-list{list-style:none;padding:0}.findings-list li{padding:10px 14px;margin-bottom:8px;border-radius:6px;border-left:4px solid var(--border);background:var(--card-bg);font-size:.9em}.findings-list li.critical{border-left-color:var(--critical);background:var(--critical-bg)}.findings-list li.high{border-left-color:var(--high);background:var(--high-bg)}.findings-list li.medium{border-left-color:var(--medium);background:var(--medium-bg)}.findings-list li.low{border-left-color:var(--low);background:var(--low-bg)}
+.callout{border-radius:6px;padding:14px 18px;margin:12px 0;font-size:.9em;border-left:5px solid}.callout.warning{background:var(--high-bg);border-color:var(--high)}.callout.danger{background:var(--critical-bg);border-color:var(--critical)}.callout.info{background:var(--info-bg);border-color:var(--info)}.callout .callout-title{font-weight:700;margin-bottom:4px}
+.table-wrapper{overflow-x:auto;border-radius:6px;border:1px solid var(--border);margin:12px 0}.evidence-table{width:100%;border-collapse:collapse;font-size:.83em}.evidence-table thead th{background:#37474f;color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:.8em;letter-spacing:.05em;white-space:nowrap}.evidence-table thead th.center,.evidence-table tbody td.center{text-align:center}.evidence-table thead th.right,.evidence-table tbody td.right{text-align:right}.evidence-table tbody tr:nth-child(even){background:#fafafa}.evidence-table tbody tr:hover{background:#f0f4f7}.evidence-table tbody td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:top}.evidence-table tbody td.mono{font-family:var(--mono);font-size:.85em}.evidence-table tbody td.trunc{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.no-findings{color:var(--text-secondary);font-style:italic;padding:12px 0;font-size:.88em}
+details{margin-bottom:12px}details>summary{cursor:pointer;padding:10px 14px;background:#eceff1;border:1px solid var(--border);border-radius:6px;font-weight:600;font-size:.9em;display:flex;align-items:center;gap:10px;list-style:none;user-select:none}details>summary::-webkit-details-marker{display:none}details>summary:before{content:"▶";font-size:.7em;transition:transform .2s}details[open]>summary:before{transform:rotate(90deg)}details[open]>summary{border-radius:6px 6px 0 0;border-bottom-color:transparent}.details-content{padding:14px 16px;border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;background:var(--card-bg)}
+.chain-block{border:2px solid var(--critical);border-radius:8px;margin-bottom:20px;overflow:hidden}.chain-header{background:var(--critical-bg);padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.chain-header strong{font-size:1em}.chain-meta{font-size:.78em;color:var(--text-secondary);margin-left:auto}.chain-narrative{padding:14px 16px;background:#fff8f8;border-top:1px solid var(--critical-border);font-size:.9em}.chain-narrative p{margin:6px 0}
+.flight-score-block{display:flex;align-items:center;gap:16px;padding:14px 18px;border-radius:8px;margin-bottom:14px}.flight-score-block.critical{background:var(--critical-bg);border:1px solid var(--critical-border)}.flight-score-block.high{background:var(--high-bg);border:1px solid var(--high-border)}.flight-score-block.medium{background:var(--medium-bg);border:1px solid var(--medium-border)}.flight-score-block.low{background:var(--low-bg);border:1px solid var(--low-border)}.flight-score-num{font-size:2.4em;font-weight:800;line-height:1}.flight-score-block.critical .flight-score-num{color:var(--critical)}.flight-score-block.high .flight-score-num{color:var(--high)}.flight-score-block.medium .flight-score-num{color:var(--medium)}.flight-score-block.low .flight-score-num{color:var(--low)}
+.restricted-banner{background:var(--restricted-bg);color:#fff;padding:14px 20px;border-radius:6px 6px 0 0;display:flex;align-items:center;gap:10px;font-weight:700}.lock-icon{font-size:1.3em}.restricted-content{border:2px solid var(--restricted-bg);border-top:none;border-radius:0 0 6px 6px;padding:16px;background:#fff3f3}.completeness-block{background:#e8f4fd;border:1px solid #90caf9;border-radius:6px;padding:16px 20px}.completeness-block h4{color:#1565c0;margin:0 0 10px;font-size:.9em;text-transform:uppercase;letter-spacing:.06em}
+.action-list{list-style:none;padding:0;counter-reset:action-counter}.action-list li{counter-increment:action-counter;padding:10px 14px 10px 44px;position:relative;margin-bottom:8px;background:var(--card-bg);border:1px solid var(--border);border-radius:6px;font-size:.9em}.action-list li:before{content:counter(action-counter);position:absolute;left:12px;top:50%;transform:translateY(-50%);background:var(--header-bg);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75em;font-weight:700}.disclaimer{background:var(--info-bg);border-left:4px solid var(--info);padding:12px 16px;font-size:.82em;color:var(--text-secondary);border-radius:0 4px 4px 0;margin-top:16px}
+footer{background:#263238;color:rgba(255,255,255,.7);padding:16px 32px;font-size:.78em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:40px}
+@media print{nav,footer{display:none}body{background:#fff;font-size:11px}.container{max-width:100%;padding:0}.kpi-grid{grid-template-columns:repeat(4,1fr)}details{break-inside:avoid}details>summary:before{display:none}details>summary{display:block}details .details-content{display:block!important;border:1px solid var(--border)!important}.chain-block{break-inside:avoid}.restricted-content{border:2px solid #ccc}@page{margin:1.5cm}}
+</style>
+</head>
+<body>
+<header class="report-header">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+    <div><h1>🔍 DFIR – Internet Browsing History Analysis</h1><div class="subtitle">DFIR-IBHA v1.3 Forensic Report</div></div>
+    <span class="classification-badge"><!-- INSERT:CLASSIFICATION --></span>
+  </div>
+  <div class="meta-grid" style="margin-top:16px;">
+    <div class="meta-item"><span class="meta-label">Case Ref:</span><span class="meta-value"><!-- INSERT:CASE_REF --></span></div>
+    <div class="meta-item"><span class="meta-label">Period:</span><span class="meta-value"><!-- INSERT:DATE_FROM --> – <!-- INSERT:DATE_TO --></span></div>
+    <div class="meta-item"><span class="meta-label">Report Date:</span><span class="meta-value"><!-- INSERT:REPORT_DATE --></span></div>
+    <div class="meta-item"><span class="meta-label">Device:</span><span class="meta-value"><!-- INSERT:DEVICE_SOURCE --></span></div>
+    <div class="meta-item"><span class="meta-label">Subject Domain:</span><span class="meta-value"><!-- INSERT:SUBJECT_DOMAIN --></span></div>
+    <div class="meta-item"><span class="meta-label">Analyst:</span><span class="meta-value"><!-- INSERT:ANALYST --></span></div>
+  </div>
+</header>
+<nav>
+<a href="#exec-summary">Executive Summary</a><a href="#data-theft">Data Theft</a><a href="#insider-threat">Insider Threat</a><a href="#asset-misuse">Asset Misuse</a><a href="#temporal">Temporal</a><a href="#chains">Chains</a><a href="#mitre">MITRE</a><a href="#completeness">Completeness</a><a href="#appendices">Appendices</a>
+</nav>
+<div class="container">
+<div class="kpi-grid">
+<div class="kpi-card <!-- INSERT:OVERALL_RISK_CLASS -->"><div class="kpi-label">Overall Risk</div><div class="kpi-value <!-- INSERT:OVERALL_RISK_CLASS -->"><!-- INSERT:OVERALL_RISK --></div><div class="kpi-sub">Score: <!-- INSERT:RISK_SCORE --></div></div>
+<div class="kpi-card critical"><div class="kpi-label">Total Findings</div><div class="kpi-value critical"><!-- INSERT:TOTAL_FINDINGS --></div><div class="kpi-sub"><!-- INSERT:CRITICAL_COUNT --> Critical · <!-- INSERT:HIGH_COUNT --> High</div></div>
+<div class="kpi-card critical"><div class="kpi-label">Critical Chains</div><div class="kpi-value critical"><!-- INSERT:CHAIN_COUNT --></div><div class="kpi-sub">Multi-module event sequences</div></div>
+<div class="kpi-card <!-- INSERT:FLIGHT_RISK_CLASS -->"><div class="kpi-label">Flight Risk</div><div class="kpi-value <!-- INSERT:FLIGHT_RISK_CLASS -->"><!-- INSERT:FLIGHT_RISK --></div><div class="kpi-sub">Score: <!-- INSERT:FLIGHT_SCORE --></div></div>
+</div>
+
+<section id="exec-summary" class="section">
+<h2 class="section-title">Section 1 – Executive Summary</h2>
+<div class="risk-banner <!-- INSERT:OVERALL_RISK_CLASS -->">
+<div><div style="font-size:.75em;text-transform:uppercase;letter-spacing:.1em;opacity:.8;margin-bottom:2px;">Overall Risk Rating</div><div class="risk-label"><!-- INSERT:OVERALL_RISK --></div></div>
+<div class="risk-details"><strong>Risk Score:</strong> <!-- INSERT:RISK_SCORE --> &nbsp;|&nbsp; <strong>Findings:</strong> <!-- INSERT:TOTAL_FINDINGS --> &nbsp;|&nbsp; <strong>Chains:</strong> <!-- INSERT:CHAIN_COUNT --> &nbsp;|&nbsp; <strong>Flight Risk:</strong> <!-- INSERT:FLIGHT_RISK --></div>
+</div>
+<div class="card"><h4 style="margin-bottom:8px;color:var(--header-bg);">What Was Analyzed</h4><p><!-- INSERT:WHAT_WAS_ANALYZED --></p></div>
+<h3 class="subsection-title">Key Findings</h3><ul class="findings-list"><!-- BLOCK:KEY_FINDINGS --></ul>
+<div class="callout danger" style="margin-top:16px;"><div class="callout-title">⚠ Correlated Events (Critical Chains)</div><!-- BLOCK:CHAIN_SUMMARY --></div>
+<h3 class="subsection-title" style="margin-top:20px;">Recommended Actions</h3><ol class="action-list"><!-- BLOCK:RECOMMENDED_ACTIONS --></ol>
+<div class="disclaimer"><strong>Limitations:</strong> This analysis is based solely on internet browsing history unless otherwise stated. It cannot confirm what data, if any, was uploaded, transmitted, or accessed at destination sites. Findings are indicators requiring corroboration before any disciplinary, legal, employment, or other consequential action. This report is not, by itself, a determination of misconduct.</div>
+</section>
+
+<section class="section"><h2 class="section-title">Section 2 – Detailed Observations</h2>
+<section id="data-theft"><h3 class="subsection-title">2.1 Data Theft Findings</h3>
+<details open><summary>📧 Email Services</summary><div class="details-content">
+<div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Domain</th><th class="center">Risk</th><th>First Visit</th><th>Last Visit</th><th class="right">Visits</th><th class="right">Typed</th><th class="center">After-Hours</th></tr></thead><tbody><!-- BLOCK:EMAIL_TABLE_ROWS --></tbody></table></div>
+<h4 style="margin:14px 0 8px;font-size:.85em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;">Extracted Email Addresses from Page Titles</h4>
+<div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Email Address</th><th class="right">Appearances</th><th class="center">Corporate?</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:EMAIL_ADDR_ROWS --></tbody></table></div>
+</div></details>
+<details><summary>📤 File Transfer &amp; Cloud Storage</summary><div class="details-content"><div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Timestamp (UTC)</th><th>Domain</th><th>Page Title</th><th class="right">Visits</th><th class="center">Upload Signal</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:FT_TABLE_ROWS --></tbody></table></div></div></details>
+<details><summary>📋 Paste &amp; Code Sharing Sites</summary><div class="details-content"><div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Timestamp (UTC)</th><th>Domain</th><th>Title</th><th class="right">Visits</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:PASTE_TABLE_ROWS --></tbody></table></div></div></details>
+<details><summary>🤖 AI Tools &amp; LLM Platforms</summary><div class="details-content">
+<div class="callout danger"><div class="callout-title">🌐 Foreign Jurisdiction AI Platforms – CRITICAL</div><p style="font-size:.85em;margin-top:4px;">Data submitted to the platforms below may be subject to foreign government access laws. Escalate to legal and security leadership immediately where policy or data-classification requirements apply.</p></div>
+<div class="table-wrapper" style="margin-top:12px;"><table class="evidence-table"><thead><tr><th>Timestamp (UTC)</th><th>Platform</th><th>Title / Context</th><th class="right">Visits</th><th class="center">Upload Signal</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:FOREIGN_AI_ROWS --></tbody></table></div>
+<h4 style="margin:14px 0 8px;font-size:.85em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;">Other AI Platforms</h4>
+<div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Timestamp (UTC)</th><th>Platform</th><th>Title / Context</th><th class="right">Visits</th><th class="center">Upload Signal</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:AI_TABLE_ROWS --></tbody></table></div>
+</div></details>
+<details><summary>📄 Document Processing &amp; Conversion Tools</summary><div class="details-content"><div class="callout warning"><div class="callout-title">⚠ Investigator Note</div><p style="font-size:.85em;margin-top:4px;">Document processing site visits indicate files may have been uploaded to a third-party server. The organization has no visibility into what was uploaded or whether the service retained the data. Document titles visible in browser history are corroborating evidence of what was processed.</p></div><div class="table-wrapper" style="margin-top:12px;"><table class="evidence-table"><thead><tr><th>Timestamp (UTC)</th><th>Site</th><th>Document Title in Page</th><th class="center">Action</th><th class="center">Sensitive?</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:DOC_TABLE_ROWS --></tbody></table></div></div></details>
+</section>
+
+<section id="insider-threat" style="margin-top:24px;"><h3 class="subsection-title">2.2 Insider Threat Findings</h3>
+<details open><summary>✈ Flight Risk Indicators</summary><div class="details-content">
+<div class="flight-score-block <!-- INSERT:FLIGHT_RISK_CLASS -->"><div class="flight-score-num"><!-- INSERT:FLIGHT_SCORE --></div><div><div style="font-size:.7em;text-transform:uppercase;letter-spacing:.1em;opacity:.7;">Flight Risk Score</div><div style="font-size:1.2em;font-weight:700;"><!-- INSERT:FLIGHT_RISK --></div></div></div>
+<div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Signal Category</th><th>Platforms Observed</th><th>First Seen</th><th>Last Seen</th><th class="right">Visits</th><th class="right">Score</th></tr></thead><tbody><!-- BLOCK:FLIGHT_RISK_ROWS --></tbody></table></div>
+<h4 style="margin:14px 0 8px;font-size:.85em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;">Daily Activity Pattern</h4>
+<div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Date</th><th class="right">Job Boards</th><th class="right">Freelance</th><th class="right">Resume</th><th class="right">Comp Research</th><th class="right">Daily Total</th></tr></thead><tbody><!-- BLOCK:FLIGHT_DAILY_ROWS --></tbody></table></div>
+</div></details></section>
+
+<section id="asset-misuse" style="margin-top:24px;"><h3 class="subsection-title">2.3 Asset Misuse Findings</h3>
+<details><summary>🖥 Remote Access Tools</summary><div class="details-content"><div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Timestamp (UTC)</th><th>Domain</th><th>URL Path</th><th class="center">Session Confirmed</th><th class="right">Visits</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:RAT_TABLE_ROWS --></tbody></table></div></div></details>
+<details><summary>📱 Social Media &amp; Communication</summary><div class="details-content"><div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Platform</th><th class="right">Business-Hours Visits</th><th class="right">After-Hours Visits</th><th class="right">Total</th><th class="center">Exfil-Capable</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:SOCIAL_TABLE_ROWS --></tbody></table></div></div></details>
+<details><summary>🔞 Restricted Web Content</summary><div class="details-content"><div class="callout warning"><div class="callout-title">⚠ Distribution Notice</div><p style="font-size:.85em;margin-top:4px;">Detailed domain information is contained in Appendix C (RESTRICTED). Distribution is limited to authorized HR, Legal, and investigative personnel.</p></div><!-- BLOCK:NSFW_SUMMARY --></div></details>
+</section>
+
+<section id="temporal" style="margin-top:24px;"><h3 class="subsection-title">2.4 Temporal Analysis</h3>
+<div class="card"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+<div><div style="font-size:.7em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.07em;">Total in Scope</div><div style="font-size:1.4em;font-weight:700;"><!-- INSERT:ROWS_IN_SCOPE --></div></div>
+<div><div style="font-size:.7em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.07em;">Business Hours</div><div style="font-size:1.4em;font-weight:700;color:var(--low);"><!-- INSERT:BH_PCT -->%</div></div>
+<div><div style="font-size:.7em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.07em;">After Hours</div><div style="font-size:1.4em;font-weight:700;color:var(--high);"><!-- INSERT:AH_PCT -->%</div></div>
+<div><div style="font-size:.7em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.07em;">Spike Days</div><div style="font-size:1.4em;font-weight:700;color:var(--critical);"><!-- INSERT:SPIKE_COUNT --></div></div>
+</div></div>
+<h4 class="subsection-title">Activity Spike Days</h4><div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Date</th><th class="right">Visit Count</th><th>Notable Flagged Activity</th></tr></thead><tbody><!-- BLOCK:TEMPORAL_ROWS --></tbody></table></div>
+<h4 class="subsection-title">After-Hours High-Risk Events</h4><div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Timestamp (UTC)</th><th>Domain</th><th class="center">Category</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:AH_FLAGGED_ROWS --></tbody></table></div>
+</section>
+</section>
+
+<section id="chains" class="section"><h2 class="section-title">Critical Chain Correlations</h2><!-- BLOCK:CHAINS_SECTION --></section>
+
+<section id="mitre" class="section"><h2 class="section-title">MITRE ATT&amp;CK Mapping</h2><div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Technique ID</th><th>Technique Name</th><th>Modules Triggered</th><th class="right">Findings</th><th class="center">Confidence</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:MITRE_ROWS --></tbody></table></div></section>
+
+<section id="completeness" class="section"><h2 class="section-title">Scan Completeness Statement</h2><div class="completeness-block"><h4>Analyst Scan Completeness Statement</h4><div class="table-wrapper"><table class="evidence-table"><tbody>
+<tr><td><strong>Rows visible in session</strong></td><td><!-- INSERT:ROWS_SCANNED --></td></tr>
+<tr><td><strong>Rows within date filter</strong></td><td><!-- INSERT:ROWS_IN_SCOPE --></td></tr>
+<tr><td><strong>Full file scanned</strong></td><td><!-- INSERT:SCAN_COMPLETE --></td></tr>
+<tr><td><strong>Status</strong></td><td><!-- INSERT:SCAN_STATUS --></td></tr>
+</tbody></table></div><p style="font-size:.85em;margin-top:10px;color:var(--text-secondary);">This analysis was performed by cognitive row scanning (no code execution). Cross-validate HIGH and CRITICAL findings using the CodeInterpreter or Agentic version of DFIR-IBHA on the complete dataset before using this report as the sole basis for any action.</p></div></section>
+
+<section id="appendices" class="section"><h2 class="section-title">Appendices</h2>
+<details><summary>📎 Appendix A – All Flagged Events (Complete Evidence Table)</summary><div class="details-content"><div class="table-wrapper"><table class="evidence-table"><thead><tr><th>ID</th><th>Module</th><th class="center">Risk</th><th class="center">Confidence</th><th>Timestamp (UTC)</th><th>Domain</th><th>Title</th><th class="right">Visits</th><th class="center">AH</th></tr></thead><tbody><!-- BLOCK:ALL_FINDINGS_ROWS --></tbody></table></div></div></details>
+<details><summary>📧 Appendix B – Extracted Email Addresses</summary><div class="details-content"><div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Email Address</th><th class="right">Appearances</th><th>First Seen</th><th>Last Seen</th><th class="center">Corporate?</th><th class="center">Risk</th></tr></thead><tbody><!-- BLOCK:EMAIL_ADDR_FULL --></tbody></table></div></div></details>
+<div style="margin-top:16px;"><div class="restricted-banner"><span class="lock-icon">🔒</span><span>APPENDIX C – RESTRICTED WEB-CONTENT INDICATORS – AUTHORIZED PERSONNEL ONLY</span></div><div class="restricted-content"><div class="callout danger" style="margin-bottom:14px;"><div class="callout-title">⛔ Distribution Notice</div><p style="font-size:.85em;margin-top:4px;">This appendix must not be distributed to parties outside HR, Legal, and authorized investigators. Remove this section before sharing the report with wider audiences.</p></div><div class="table-wrapper"><table class="evidence-table"><thead><tr><th>Domain (hostname only)</th><th class="center">Category</th><th class="right">Access Events</th><th class="right">Business-Hours Events</th></tr></thead><tbody><!-- BLOCK:NSFW_DOMAIN_ROWS --></tbody></table></div></div></div>
+</section>
+</div>
+
+<footer>
+<span>DFIR-IBHA v1.3 | Analysis Skill: <!-- INSERT:SKILL_VERSION --> | Template: <!-- INSERT:TEMPLATE_VERSION --> | Case: <!-- INSERT:CASE_REF --> | <!-- INSERT:REPORT_DATE --></span>
+<span>Classification: <!-- INSERT:CLASSIFICATION --> – Handle per organizational data classification policy</span>
+<span>Findings are analytical indicators, not standalone proof. Corroboration required before consequential action.</span>
+</footer>
+</body>
+</html>
