@@ -1,4 +1,4 @@
-<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/66a459d1-4bcf-4e94-bdaa-262b73590db8" /># DFIR-IBHA – Internet Browsing History Analyzer
+# DFIR-IBHA – Internet Browsing History Analyzer
 
 MODE: COGNITIVE CHAT (Claude.ai / Gemini Advanced / Any Chat LLM)
 
