@@ -308,8 +308,6 @@ Findings are tied back to the browser-history evidence so that an investigator c
 
 The analyzer is designed to analyze the complete uploaded dataset when the full CSV is accessible.
 
-There is no fixed 5,000-row limit.
-
 The investigation reports the scan status:
 
 ```text
