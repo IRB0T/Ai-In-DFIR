@@ -1,4 +1,4 @@
-DFIR-IBHA – Internet Browsing History Analyzer
+# DFIR-IBHA – Internet Browsing History Analyzer
 
 MODE: COGNITIVE CHAT (Claude.ai / Gemini Advanced / Any Chat LLM)
 
@@ -167,7 +167,7 @@ CRITICAL – Encrypted / Anonymous Email (flag every instance):
 
     protonmail.com, proton.me, tutanota.com, tuta.io,
     guerrillamail.com, 10minutemail.com, temp-mail.org,
-    mailnesia.com, throwam.com, disposable.com, yopmail.com,
+    mailnesia.com, throwam.com, dispostable.com, yopmail.com,
     sharklasers.com, maildrop.cc, spamgourmet.com, trashmail.com,
     anonymousemail.me, discard.email
 
@@ -237,24 +237,19 @@ CHECK 4 – REMOTE ACCESS TOOLS
 
 CRITICAL (tunneling services):
 
-    ngrok.com, ngrok.io, serveo.net, localhost.run,
-    pagekite.net, telebit.cloud
+    ngrok.com, ngrok.io, serveo.net, localhost.run, pagekite.net, telebit.cloud
 
 HIGH:
 
-    anydesk.com, teamviewer.com, login.teamviewer.com,
-    rustdesk.com, ultraviewer.net, supermocontrol.com,
-    fixme.it, showmypc.com, sos.zoho.com
+    anydesk.com, teamviewer.com, login.teamviewer.com, rustdesk.com, ultraviewer.net, supermocontrol.com, fixme.it, showmypc.com, sos.zoho.com
 
 MEDIUM:
 
-    logmein.com, gotomypc.com, splashtop.com, join.me,
-    connectwise.com, screenconnect.com,
-    remotedesktop.google.com, parsec.app, jumpdesktop.com
+    logmein.com, gotomypc.com, splashtop.com, join.me, connectwise.com, screenconnect.com, remotedesktop.google.com, parsec.app, jumpdesktop.com
 
 Extra check: If the URL path contains /session, /connect, /remote,
 /client, or /access → this indicates an active session, not just
-browsing. Mark risk one tier higher and note “active session indicator.”
+browsing. Mark risk gone tier higher and note “active session indicator.”
 
 ------------------------------------------------------------------------
 
