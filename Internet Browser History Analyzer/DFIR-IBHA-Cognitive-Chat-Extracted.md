@@ -1,4 +1,4 @@
-# DFIR-IBHA – Internet Browsing History Analyzer
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/66a459d1-4bcf-4e94-bdaa-262b73590db8" /># DFIR-IBHA – Internet Browsing History Analyzer
 
 MODE: COGNITIVE CHAT (Claude.ai / Gemini Advanced / Any Chat LLM)
 
@@ -129,13 +129,7 @@ If the user specified a date range, acknowledge it:
 
 Step 1.3 – File size assessment
 
-Count the rows. If there are more than 5,000 rows, say:
-
-    This file contains approximately [N] rows which is within/exceeds cognitive
-    analysis limits. [If exceeds:] I will do my best to scan all rows, but I
-    recommend providing a date-filtered subset for the most accurate results.
-    If the analysis appears incomplete, please export a filtered CSV covering
-    [DATE_FROM] to [DATE_TO] only.
+    Count the rows and report the total. If the file appears too large for the AI platform to fully process, say so and ask the user for a date-filtered export. There is no fixed row limit - report scan completeness honestly.
 
 Step 1.4 – Confirm before scanning
 
@@ -457,6 +451,39 @@ For each chain you find, note:
 - The time span between first and last event
 - The anchor event (the one that triggered the chain)
 
+---
+## PHASE 3 - RISK SCORING
+
+After completing the scan, score each finding:
+**Severity:**
+CRITICAL = 4 pts (foreign AI, encrypted email, sensitive doc title, ngrok)
+HIGH     = 3 pts (know exfil service, personal email in title, active RAT session)
+MEDIUM   = 2 pts (personal email domain, social media, basic AI visit)
+LOW      = 1 pts (single visit, no corroboration)
+INFO     = 0 pts (logged, no risk alone)
+
+**Confidence:**
+CONFIRMED = x1.0 (direct URL + title evidence)
+PROBABLE  = x0.7 (domain match, title not available)
+POSSIBLE  = x0.4 (domain match only, single visit)
+
+Subject Risk Score = SUM of (severity x confidence)
+> 20 = CRITICAL | 10-20 = HIGH | 5-9 = MEDIUM | 1-4 = LOW
+---
+---
+## PHASE 4 - CHAIN DETECTION
+
+After scoring, look at timestamps of all HIGH and CRITICAL findings.
+Identify any cases where two or more findings from DIFFERENT categories
+occurred within 2 hours of each other.
+
+Named chains (auto-label if detected):
+Document Processing + File Transfer within 2 hours -> CRITICAL
+Document Processing + AI Platform within 2 hours -> CRITICAL
+Personal Email + File Transfer within 2 hours -> HIGH
+Flight Risk (HIGH score) + File Transfer (same 30 days) -> CRITICAL
+
+For each chain: note modules involved, time span, anchor event.
 ---
 ## PHASE 5 — GENERATE REPORTS
 
@@ -788,6 +815,8 @@ events explicitly after completing all module scans.
 ---
 
 ### Universal Tips (All Models)
+
+1.**Pre-sort the CSV by timestamp** before uploading. Every model performs better at chain detection when events are in chronological order.
 
 ## CONFIDENCE CALIBRATION
 
